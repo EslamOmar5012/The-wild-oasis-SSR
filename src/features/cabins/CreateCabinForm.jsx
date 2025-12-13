@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createCabin } from "../../services/apiCabins";
+import { createEditCabin } from "../../services/apiCabins";
 import { showToast } from "../../utils/helpers";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -22,7 +22,11 @@ const ACCEPTED_IMAGE_TYPES = [
   "image/x-icon",
 ];
 
-function CreateCabinForm({ hideForm }) {
+function CreateCabinForm({ hideForm, cabinToEdit = {} }) {
+  const { id: editId, ...editValues } = cabinToEdit;
+  console.log(editId);
+  const isEditSession = Boolean(editId);
+
   const cabinSchema = z.object({
     name: z
       .string({
@@ -63,14 +67,25 @@ function CreateCabinForm({ hideForm }) {
 
     image: z
       .any()
-      .refine(
-        (file) => file[0]?.size <= MAX_FILE_SIZE,
-        `Max image size is 5MB.`
-      )
-      .refine(
-        (file) => ACCEPTED_IMAGE_TYPES.includes(file[0]?.type),
-        "Only .jpg, .jpeg, .png, .ico and .webp formats are supported."
-      ),
+      .refine((file) => {
+        if (isEditSession) {
+          if (typeof file !== "string") {
+            return file[0]?.size <= MAX_FILE_SIZE;
+          } else return true;
+        }
+
+        return file[0]?.size <= MAX_FILE_SIZE;
+      }, `Max image size is 5MB.`)
+      .refine((file) => {
+        if (isEditSession) {
+          if (typeof file !== "string")
+            return ACCEPTED_IMAGE_TYPES.includes(file[0]?.type);
+          else return true;
+        }
+        return ACCEPTED_IMAGE_TYPES.includes(file[0]?.type);
+      }, "Only .jpg, .jpeg, .png, .ico and .webp formats are supported.")
+      .optional()
+      .or(z.literal("")),
   });
 
   const {
@@ -79,13 +94,14 @@ function CreateCabinForm({ hideForm }) {
     formState: { errors },
     reset,
   } = useForm({
+    defaultValues: isEditSession ? editValues : {},
     resolver: zodResolver(cabinSchema),
   });
 
   const queryClinet = useQueryClient();
 
-  const { isPending, mutate } = useMutation({
-    mutationFn: createCabin,
+  const { isPending: isCreating, mutate: createCabin } = useMutation({
+    mutationFn: (cabinData) => createEditCabin(cabinData),
     onSuccess: () => {
       showToast("Cabin created successfully", "success");
       queryClinet.invalidateQueries(["cabin table"]);
@@ -97,10 +113,28 @@ function CreateCabinForm({ hideForm }) {
     },
   });
 
-  const onSubmit = (data) => {
-    // console.log({ ...data, image: data.image[0] });
+  const { isPending: isEditing, mutate: editCabin } = useMutation({
+    mutationFn: ({ newCabinData, id }) => createEditCabin(newCabinData, id),
+    onSuccess: () => {
+      showToast("Cabin edited successfully", "success");
+      queryClinet.invalidateQueries(["cabin table"]);
+      reset();
+      hideForm();
+    },
+    onError: (error) => {
+      showToast(error.message, "error");
+    },
+  });
 
-    mutate({ ...data, image: data.image[0] });
+  const isLoading = isCreating || isEditing;
+
+  const onSubmit = (data) => {
+    const image = typeof data.image === "string" ? data.image : data.image[0];
+    // console.log(data);
+
+    if (isEditSession)
+      editCabin({ newCabinData: { ...data, image }, id: editId });
+    else createCabin({ ...data, image });
   };
 
   return (
@@ -113,6 +147,7 @@ function CreateCabinForm({ hideForm }) {
         <Input
           type="number"
           id="maxCapacity"
+          disabled={isLoading}
           {...register("maxCapacity", { valueAsNumber: true })}
         />
       </FormRow>
@@ -121,6 +156,7 @@ function CreateCabinForm({ hideForm }) {
         <Input
           type="number"
           id="regularPrice"
+          disabled={isLoading}
           {...register("regularPrice", { valueAsNumber: true })}
         />
       </FormRow>
@@ -130,6 +166,7 @@ function CreateCabinForm({ hideForm }) {
           type="number"
           id="discount"
           defaultValue={0}
+          disabled={isLoading}
           {...register("discount", { valueAsNumber: true })}
         />
       </FormRow>
@@ -139,6 +176,7 @@ function CreateCabinForm({ hideForm }) {
           type="number"
           id="description"
           defaultValue=""
+          disabled={isLoading}
           {...register("description")}
         />
       </FormRow>
@@ -149,16 +187,27 @@ function CreateCabinForm({ hideForm }) {
 
       <FormRow>
         {/* type is an HTML attribute! */}
-        <Button $variation="secondary" $size="medium" type="reset">
+        <Button
+          $variation="secondary"
+          $size="medium"
+          type="reset"
+          onClick={() => {
+            if (isEditSession) hideForm();
+          }}
+        >
           Cancel
         </Button>
         <Button
           $variation="primary"
           $size="medium"
           type="submit"
-          disabled={isPending}
+          disabled={isLoading}
         >
-          {isPending ? "Loading..." : "Edit cabin"}
+          {isLoading
+            ? "Loading..."
+            : isEditSession
+            ? "Edit cabin"
+            : "Create new cabin"}
         </Button>
       </FormRow>
     </Form>
