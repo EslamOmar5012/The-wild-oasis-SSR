@@ -12,6 +12,7 @@ import Textarea from "../../ui/Textarea";
 import FormRow from "../../ui/formRow";
 
 import z from "zod";
+import { useCreateCabin } from "../../hooks/useCreateCabin";
 
 const MAX_FILE_SIZE = 5000000;
 const ACCEPTED_IMAGE_TYPES = [
@@ -98,20 +99,9 @@ function CreateCabinForm({ hideForm, cabinToEdit = {} }) {
     resolver: zodResolver(cabinSchema),
   });
 
-  const queryClinet = useQueryClient();
+  const [isCreating, createCabin] = useCreateCabin(reset, hideForm);
 
-  const { isPending: isCreating, mutate: createCabin } = useMutation({
-    mutationFn: (cabinData) => createEditCabin(cabinData),
-    onSuccess: () => {
-      showToast("Cabin created successfully", "success");
-      queryClinet.invalidateQueries(["cabin table"]);
-      reset();
-      hideForm();
-    },
-    onError: (error) => {
-      showToast(error.message, "error");
-    },
-  });
+  const queryClinet = useQueryClient();
 
   const { isPending: isEditing, mutate: editCabin } = useMutation({
     mutationFn: ({ newCabinData, id }) => createEditCabin(newCabinData, id),

@@ -1,9 +1,9 @@
-import styled from "styled-components";
-import { formatCurrency, showToast } from "../../utils/helpers";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { deleteCabin } from "../../services/apiCabins";
+import { formatCurrency } from "../../utils/helpers";
 import { useRef, useState } from "react";
+import { useDeleteCabin } from "../../hooks/useDeleteCabin";
+
 import CreateCabinForm from "./CreateCabinForm";
+import styled from "styled-components";
 
 const TableRow = styled.div`
   display: grid;
@@ -46,18 +46,8 @@ const Discount = styled.div`
 
 function CabinRow({ cabin }) {
   const [showForm, setShow] = useState(false);
-  const queryClient = useQueryClient();
 
-  const { isPending, mutate } = useMutation({
-    mutationFn: deleteCabin,
-    onSuccess: () => {
-      queryClient.invalidateQueries(["cabin tables"]);
-      showToast(`cabin ${cabin.name} has been deleted successfully`, "success");
-    },
-    onError: (error) => {
-      showToast(error.message, "error");
-    },
-  });
+  const [isDeleting, deleteCabin] = useDeleteCabin(cabin.name);
 
   const cabinImage = useRef(cabin.image.split("/").at(-1));
 
@@ -68,14 +58,20 @@ function CabinRow({ cabin }) {
         <Cabin>{cabin.name}</Cabin>
         <div>Fits up to {cabin.maxCapacity} guests</div>
         <Price>{formatCurrency(cabin.regularPrice)}</Price>
-        <Discount>{formatCurrency(cabin.discount)}</Discount>
+        {cabin.discount ? (
+          <Discount>{formatCurrency(cabin.discount)}</Discount>
+        ) : (
+          <span>&mdash;</span>
+        )}
         <div>
           <button onClick={() => setShow((prev) => !prev)}>Edit</button>
           <button
-            onClick={() => mutate({ id: cabin.id, image: cabinImage.current })}
-            disabled={isPending}
+            onClick={() =>
+              deleteCabin({ id: cabin.id, image: cabinImage.current })
+            }
+            disabled={isDeleting}
           >
-            {isPending ? "loading..." : "Delete"}
+            {isDeleting ? "loading..." : "Delete"}
           </button>
         </div>
       </TableRow>
