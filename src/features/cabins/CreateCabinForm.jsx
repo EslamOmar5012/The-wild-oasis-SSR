@@ -1,7 +1,4 @@
 import { useForm } from "react-hook-form";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createEditCabin } from "../../services/apiCabins";
-import { showToast } from "../../utils/helpers";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import Input from "../../ui/Input";
@@ -13,6 +10,7 @@ import FormRow from "../../ui/formRow";
 
 import z from "zod";
 import { useCreateCabin } from "../../hooks/useCreateCabin";
+import { useEditCabin } from "../../hooks/useEditCabin";
 
 const MAX_FILE_SIZE = 5000000;
 const ACCEPTED_IMAGE_TYPES = [
@@ -101,20 +99,7 @@ function CreateCabinForm({ hideForm, cabinToEdit = {} }) {
 
   const [isCreating, createCabin] = useCreateCabin(reset, hideForm);
 
-  const queryClinet = useQueryClient();
-
-  const { isPending: isEditing, mutate: editCabin } = useMutation({
-    mutationFn: ({ newCabinData, id }) => createEditCabin(newCabinData, id),
-    onSuccess: () => {
-      showToast("Cabin edited successfully", "success");
-      queryClinet.invalidateQueries(["cabin table"]);
-      reset();
-      hideForm();
-    },
-    onError: (error) => {
-      showToast(error.message, "error");
-    },
-  });
+  const [isEditing, editCabin] = useEditCabin(reset, hideForm);
 
   const isLoading = isCreating || isEditing;
 

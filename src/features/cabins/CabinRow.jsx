@@ -4,6 +4,9 @@ import { useDeleteCabin } from "../../hooks/useDeleteCabin";
 
 import CreateCabinForm from "./CreateCabinForm";
 import styled from "styled-components";
+import { HiPencil, HiSquare2Stack, HiTrash } from "react-icons/hi2";
+import { SlReload } from "react-icons/sl";
+import { useCreateCabin } from "../../hooks/useCreateCabin";
 
 const TableRow = styled.div`
   display: grid;
@@ -48,30 +51,57 @@ function CabinRow({ cabin }) {
   const [showForm, setShow] = useState(false);
 
   const [isDeleting, deleteCabin] = useDeleteCabin(cabin.name);
+  const [isDuplicating, duplicateCabin] = useCreateCabin();
 
-  const cabinImage = useRef(cabin.image.split("/").at(-1));
+  const {
+    id: cabinId,
+    name,
+    maxCapacity,
+    regularPrice,
+    discount,
+    image,
+    description,
+  } = cabin;
+
+  const handleDuplicate = () => {
+    duplicateCabin({
+      name: `Copy of ${name}`,
+      maxCapacity,
+      regularPrice,
+      discount,
+      image,
+      description,
+    });
+  };
+
+  const cabinImage = useRef(image.split("/").at(-1));
 
   return (
     <>
       <TableRow role="row">
-        <Img src={cabin?.image} />
-        <Cabin>{cabin.name}</Cabin>
-        <div>Fits up to {cabin.maxCapacity} guests</div>
-        <Price>{formatCurrency(cabin.regularPrice)}</Price>
-        {cabin.discount ? (
-          <Discount>{formatCurrency(cabin.discount)}</Discount>
+        <Img src={image} />
+        <Cabin>{name}</Cabin>
+        <div>Fits up to {maxCapacity} guests</div>
+        <Price>{formatCurrency(regularPrice)}</Price>
+        {discount ? (
+          <Discount>{formatCurrency(discount)}</Discount>
         ) : (
           <span>&mdash;</span>
         )}
         <div>
-          <button onClick={() => setShow((prev) => !prev)}>Edit</button>
+          <button disabled={isDuplicating} onClick={handleDuplicate}>
+            <HiSquare2Stack />
+          </button>
+          <button onClick={() => setShow((prev) => !prev)}>
+            <HiPencil />
+          </button>
           <button
             onClick={() =>
-              deleteCabin({ id: cabin.id, image: cabinImage.current })
+              deleteCabin({ id: cabinId, image: cabinImage.current })
             }
             disabled={isDeleting}
           >
-            {isDeleting ? "loading..." : "Delete"}
+            {isDeleting ? <SlReload /> : <HiTrash />}
           </button>
         </div>
       </TableRow>
