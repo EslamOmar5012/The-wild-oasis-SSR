@@ -13,13 +13,14 @@ const ErrorHeader = styled.h3`
 
 function CabinTable() {
   const [isPending, cabins, isError, error] = useCabins();
-  const [filterParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
 
   if (isPending) return <Spinner />;
 
   if (isError) return <ErrorHeader>{error.message}</ErrorHeader>;
 
-  const filterValue = filterParams.get("discount") || "all";
+  // 1) FILTER
+  const filterValue = searchParams.get("discount") || "all";
 
   let filteredCabins;
 
@@ -35,6 +36,17 @@ function CabinTable() {
       break;
   }
 
+  // 2) SORT
+  const sortBy = searchParams.get("sortBy") || "startDate-asc";
+
+  const [field, direction] = sortBy.split("-");
+
+  const modifier = direction === "asc" ? 1 : -1;
+
+  const sortedCabins = filteredCabins.sort(
+    (a, b) => (a[field] - b[field]) * modifier
+  );
+
   return (
     <Menus>
       <Table columns="0.6fr 1.8fr 2.2fr 1fr 1fr 1fr">
@@ -48,7 +60,7 @@ function CabinTable() {
         </Table.Header>
 
         <Table.Body
-          data={filteredCabins}
+          data={sortedCabins}
           render={(cabin) => <CabinRow key={cabin.id} cabin={cabin}></CabinRow>}
         />
       </Table>
