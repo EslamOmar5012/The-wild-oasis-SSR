@@ -7,6 +7,7 @@ import styled from "styled-components";
 import { HiPencil, HiSquare2Stack, HiTrash } from "react-icons/hi2";
 import { SlReload } from "react-icons/sl";
 import { useCreateCabin } from "../../hooks/useCreateCabin";
+import Modal from "../../ui/Modal";
 
 const TableRow = styled.div`
   display: grid;
@@ -92,20 +93,30 @@ function CabinRow({ cabin }) {
           <button disabled={isDuplicating} onClick={handleDuplicate}>
             <HiSquare2Stack />
           </button>
-          <button onClick={() => setShow((prev) => !prev)}>
-            <HiPencil />
-          </button>
-          <button
-            onClick={() =>
-              deleteCabin({ id: cabinId, image: cabinImage.current })
-            }
-            disabled={isDeleting}
-          >
-            {isDeleting ? <SlReload /> : <HiTrash />}
-          </button>
+          <Modal>
+            <Modal.Open opens="edit">
+              <button onClick={() => setShow((prev) => !prev)}>
+                <HiPencil />
+              </button>
+            </Modal.Open>
+            <Modal.Window name="edit">
+              <CreateCabinForm
+                cabinToEdit={cabin}
+                hideForm={setShow}
+                type="modal"
+              />
+            </Modal.Window>
+            <button
+              onClick={() =>
+                deleteCabin({ id: cabinId, image: cabinImage.current })
+              }
+              disabled={isDeleting}
+            >
+              {isDeleting ? <SlReload /> : <HiTrash />}
+            </button>
+          </Modal>
         </div>
       </TableRow>
-      {showForm && <CreateCabinForm cabinToEdit={cabin} hideForm={setShow} />}
     </>
   );
 }
