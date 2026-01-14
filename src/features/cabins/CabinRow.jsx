@@ -9,6 +9,7 @@ import { SlReload } from "react-icons/sl";
 import { useCreateCabin } from "../../hooks/useCreateCabin";
 import Modal from "../../ui/Modal";
 import Table from "../../ui/Table";
+import Menus from "../../ui/Menus";
 
 // const TableRow = styled.div`
 //   display: grid;
@@ -90,30 +91,47 @@ function CabinRow({ cabin }) {
         <span>&mdash;</span>
       )}
       <div>
-        <button disabled={isDuplicating} onClick={handleDuplicate}>
-          <HiSquare2Stack />
-        </button>
         <Modal>
-          <Modal.Open opens="edit">
-            <button onClick={() => setShow((prev) => !prev)}>
-              <HiPencil />
-            </button>
-          </Modal.Open>
-          <Modal.Window name="edit">
-            <CreateCabinForm
-              cabinToEdit={cabin}
-              hideForm={setShow}
-              type="modal"
-            />
-          </Modal.Window>
-          <button
-            onClick={() =>
-              deleteCabin({ id: cabinId, image: cabinImage.current })
-            }
-            disabled={isDeleting}
-          >
-            {isDeleting ? <SlReload /> : <HiTrash />}
-          </button>
+          <Menus.Menu>
+            <Menus.Toggle id={cabinId} />
+
+            <Menus.List id={cabinId}>
+              <Menus.Button
+                icon={<HiSquare2Stack />}
+                onClick={handleDuplicate}
+                disabled={isDuplicating}
+              >
+                Duplicate
+              </Menus.Button>
+
+              <Modal.Open opens="edit">
+                <Menus.Button
+                  icon={<HiPencil />}
+                  onClick={() => setShow((prev) => !prev)}
+                >
+                  Edit
+                </Menus.Button>
+              </Modal.Open>
+
+              <Menus.Button
+                icon={isDeleting ? <SlReload /> : <HiTrash />}
+                onClick={() =>
+                  deleteCabin({ id: cabinId, image: cabinImage.current })
+                }
+                disabled={isDeleting}
+              >
+                Delete
+              </Menus.Button>
+            </Menus.List>
+
+            <Modal.Window name="edit">
+              <CreateCabinForm
+                cabinToEdit={cabin}
+                hideForm={setShow}
+                type="modal"
+              />
+            </Modal.Window>
+          </Menus.Menu>
         </Modal>
       </div>
     </Table.Row>
