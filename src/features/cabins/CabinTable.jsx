@@ -6,6 +6,7 @@ import Spinner from "../../ui/Spinner";
 import Table from "../../ui/Table";
 import CabinRow from "./CabinRow";
 import styled from "styled-components";
+import Empty from "../../ui/Empty";
 
 const ErrorHeader = styled.h3`
   margin: auto;
@@ -18,6 +19,8 @@ function CabinTable() {
   if (isPending) return <Spinner />;
 
   if (isError) return <ErrorHeader>{error.message}</ErrorHeader>;
+
+  if (!cabins.length) return <Empty resourceName="cabins" />;
 
   // 1) FILTER
   const filterValue = searchParams.get("discount") || "all";
