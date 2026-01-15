@@ -4,6 +4,7 @@ import Menus from "../../ui/Menus.jsx";
 import Empty from "../../ui/Empty.jsx";
 import { useBookings } from "../../hooks/useBookings.js";
 import Spinner from "../../ui/Spinner.jsx";
+import Pagination from "../../ui/Pagination.jsx";
 
 function BookingTable() {
   const [isLoading, bookings, error] = useBookings();
@@ -12,7 +13,7 @@ function BookingTable() {
 
   if (error) return <ErrorHeader>{error.message}</ErrorHeader>;
 
-  if (!bookings.length) return <Empty resourseName="bookings" />;
+  if (!bookings.length) return <Empty resourceName="bookings" />;
 
   return (
     <Menus>
@@ -32,6 +33,10 @@ function BookingTable() {
             <BookingRow key={booking.id} booking={booking} />
           )}
         />
+
+        <Table.Footer>
+          <Pagination count={bookings.length} />
+        </Table.Footer>
       </Table>
     </Menus>
   );
