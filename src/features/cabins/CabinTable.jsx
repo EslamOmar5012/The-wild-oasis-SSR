@@ -5,9 +5,9 @@ import Menus from "../../ui/Menus";
 import Spinner from "../../ui/Spinner";
 import Table from "../../ui/Table";
 import CabinRow from "./CabinRow";
-import styled from "styled-components";
 import Empty from "../../ui/Empty";
 import ErrorHeader from "../../ui/ErrorHeader";
+import Pagination from "../../ui/Pagination";
 
 function CabinTable() {
   const [isPending, cabins, isError, error] = useCabins();
@@ -17,7 +17,7 @@ function CabinTable() {
 
   if (isError) return <ErrorHeader>{error.message}</ErrorHeader>;
 
-  if (!cabins.length) return <Empty resourceName="cabins" />;
+  if (!cabins.data.length) return <Empty resourceName="cabins" />;
 
   // 1) FILTER
   const filterValue = searchParams.get("discount") || "all";
@@ -26,13 +26,13 @@ function CabinTable() {
 
   switch (filterValue) {
     case "all":
-      filteredCabins = cabins;
+      filteredCabins = cabins.data;
       break;
     case "no-discount":
-      filteredCabins = cabins.filter((cabin) => cabin.discount === 0);
+      filteredCabins = cabins.data.filter((cabin) => cabin.discount === 0);
       break;
     case "discount":
-      filteredCabins = cabins.filter((cabin) => cabin.discount !== 0);
+      filteredCabins = cabins.data.filter((cabin) => cabin.discount !== 0);
       break;
   }
 
@@ -63,6 +63,10 @@ function CabinTable() {
           data={sortedCabins}
           render={(cabin) => <CabinRow key={cabin.id} cabin={cabin}></CabinRow>}
         />
+
+        <Table.Footer>
+          <Pagination count={cabins.count} />
+        </Table.Footer>
       </Table>
     </Menus>
   );

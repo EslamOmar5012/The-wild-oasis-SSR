@@ -1,12 +1,20 @@
+import { PAGE_SIZE } from "../utils/constants";
 import { supabase, supabaseUrl } from "./supabase";
 
-export const getCabins = async () => {
+export const getCabins = async ({ page }) => {
   try {
-    const { data, error } = await supabase.from("cabins").select("*");
+    const from = (page - 1) * PAGE_SIZE;
+    const to = from + (PAGE_SIZE - 1);
+
+    const { data, error, count } = await supabase
+      .from("cabins")
+      .select("*", { count: "exact" })
+      .range(from, to);
+
     if (error || !data)
       throw new Error(error.message || "Cabins could not be loaded");
 
-    return data;
+    return { data, count };
   } catch (err) {
     console.error(err.message);
     throw err;
@@ -19,7 +27,7 @@ export const createEditCabin = async (newCabin, id) => {
 
     const imageName = `${Math.random()}-${newCabin.image.name}`.replaceAll(
       "/",
-      ""
+      "",
     );
 
     const imagePath = hasImagePath
@@ -53,7 +61,7 @@ export const createEditCabin = async (newCabin, id) => {
     if (storageError) {
       await supabase.from("cabins").delete().eq("id", data.id);
       throw new Error(
-        "cabin image could not be uploaded and the cabin was not created"
+        "cabin image could not be uploaded and the cabin was not created",
       );
     }
   } catch (err) {
