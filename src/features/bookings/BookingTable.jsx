@@ -5,6 +5,8 @@ import Empty from "../../ui/Empty.jsx";
 import { useBookings } from "../../hooks/useBookings.js";
 import Spinner from "../../ui/Spinner.jsx";
 import Pagination from "../../ui/Pagination.jsx";
+import ErrorHeader from "../../ui/ErrorHeader.jsx";
+import { useQueryClient } from "@tanstack/react-query";
 
 function BookingTable() {
   const [isLoading, bookings, error] = useBookings();

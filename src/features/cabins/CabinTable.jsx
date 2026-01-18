@@ -7,10 +7,7 @@ import Table from "../../ui/Table";
 import CabinRow from "./CabinRow";
 import styled from "styled-components";
 import Empty from "../../ui/Empty";
-
-const ErrorHeader = styled.h3`
-  margin: auto;
-`;
+import ErrorHeader from "../../ui/ErrorHeader";
 
 function CabinTable() {
   const [isPending, cabins, isError, error] = useCabins();
@@ -47,7 +44,7 @@ function CabinTable() {
   const modifier = direction === "asc" ? 1 : -1;
 
   const sortedCabins = filteredCabins.sort(
-    (a, b) => (a[field] - b[field]) * modifier
+    (a, b) => (a[field] - b[field]) * modifier,
   );
 
   return (
