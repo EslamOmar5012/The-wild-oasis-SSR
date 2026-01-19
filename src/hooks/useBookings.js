@@ -34,8 +34,6 @@ export const useBookings = () => {
 
   const pageCount = Math.ceil(bookings?.count / PAGE_SIZE);
 
-  console.log(page, pageCount);
-
   //PRE-Fetching
   if (page < pageCount)
     queryClient.prefetchQuery({
