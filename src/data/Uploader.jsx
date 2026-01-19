@@ -56,10 +56,11 @@ async function createBookings() {
   const finalBookings = bookings.map((booking) => {
     // Here relying on the order of cabins, as they don't have and ID yet
     const cabin = cabins.at(booking.cabinId - 1);
-    const numberOfNights = subtractDates(booking.endDate, booking.startDate);
+    const numberOfNights =
+      subtractDates(booking.endDate, booking.startDate) || 0;
     const cabinPrice = numberOfNights * (cabin.regularPrice - cabin.discount);
     const extrasPrice = booking.hasBreakfast
-      ? numberOfNights * 15 * booking.numGuests
+      ? numberOfNights * 15 * booking.numberGuests
       : 0; // hardcoded breakfast price
     const totalPrice = cabinPrice + extrasPrice;
 
